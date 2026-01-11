@@ -38,7 +38,7 @@ export function Calendar() {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-24">
+    <div className="max-w-2xl mx-auto px-4 pt-4 pb-24">
       <div className="card mt-4">
         {/* Month Header */}
         <div className="flex items-center justify-between mb-6">

@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'kettlebell-icon.svg'],
+      includeAssets: ['favicon.ico', 'kettlebell-icon.png'],
       manifest: {
         name: "Occam's Protocol",
         short_name: 'Occam Protocol',
@@ -21,33 +21,35 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'kettlebell-icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'kettlebell-icon.png',
+            sizes: '192x192',
+            type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'kettlebell-icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'kettlebell-icon.png',
+            sizes: '192x192',
+            type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: 'kettlebell-icon.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml',
+            src: 'kettlebell-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'kettlebell-icon.svg',
+            src: 'kettlebell-icon.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any'
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -57,6 +59,20 @@ export default defineConfig({
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-static-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365
               },
               cacheableResponse: {
                 statuses: [0, 200]

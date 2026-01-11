@@ -1,6 +1,7 @@
 import { useSessions } from '../../hooks/useSessions';
 import { useSettings } from '../../hooks/useSettings';
 import { useMeasurements } from '../../hooks/useMeasurements';
+import { getUserProfile } from '../../utils/storage';
 import { formatDateDisplay } from '../../utils/dateUtils';
 import { startOfMonth } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -9,6 +10,7 @@ export function Dashboard() {
   const { sessions } = useSessions();
   const { settings } = useSettings();
   const { getLatestMeasurement } = useMeasurements();
+  const userProfile = getUserProfile();
 
   const totalSessions = sessions.length;
   const thisMonth = sessions.filter((s) => {
@@ -37,8 +39,15 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-24">
-      <h1 className="text-2xl font-bold mb-6 mt-4">Dashboard</h1>
+    <div className="max-w-2xl mx-auto px-4 pt-4 pb-24">
+      {userProfile?.name && (
+        <div className="mb-4 mt-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Welcome, {userProfile.name}!
+          </h1>
+        </div>
+      )}
+      <h2 className="text-2xl font-bold mb-6 mt-4">Dashboard</h2>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

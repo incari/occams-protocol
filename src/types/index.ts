@@ -51,10 +51,20 @@ export interface AppSettings {
   theme: 'light' | 'dark';
 }
 
+export interface UserProfile {
+  name: string;
+  height: number; // in cm
+  initialWeight: number; // in kg
+  heightUnit: 'cm' | 'inches';
+  weightUnit: 'kg' | 'lbs';
+  onboardingCompleted: boolean;
+}
+
 export interface AppData {
   sessions: TrainingSession[];
   measurements: Measurement[];
   settings: AppSettings;
+  userProfile?: UserProfile;
 }
 
 export const EXERCISES: Record<Variant, string[]> = {

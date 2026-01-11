@@ -1,4 +1,4 @@
-import type { AppData, AppSettings, TrainingSession, Measurement } from '../types';
+import type { AppData, AppSettings, TrainingSession, Measurement, UserProfile } from '../types';
 
 const STORAGE_KEY = 'occam-protocol-data';
 
@@ -31,6 +31,7 @@ export function getStoredData(): AppData {
           // Ensure measurementNotifications exists for backward compatibility
           measurementNotifications: data.settings?.measurementNotifications || DEFAULT_SETTINGS.measurementNotifications,
         },
+        userProfile: data.userProfile,
       };
     }
   } catch (error) {
@@ -105,6 +106,7 @@ export function importData(jsonString: string): boolean {
         sessions: data.sessions || [],
         measurements: data.measurements || [],
         settings: { ...DEFAULT_SETTINGS, ...data.settings },
+        userProfile: data.userProfile,
       };
       return saveStoredData(importedData);
     }
@@ -152,4 +154,26 @@ export function clearAllData(): boolean {
     console.error('Error clearing data:', error);
     return false;
   }
+}
+
+export function getUserProfile(): UserProfile | null {
+  const data = getStoredData();
+  return data.userProfile || null;
+}
+
+export function updateUserProfile(profile: Partial<UserProfile>): boolean {
+  const data = getStoredData();
+  const existingProfile = data.userProfile;
+  
+  data.userProfile = {
+    ...existingProfile,
+    ...profile,
+  } as UserProfile;
+  
+  return saveStoredData(data);
+}
+
+export function isOnboardingCompleted(): boolean {
+  const profile = getUserProfile();
+  return profile?.onboardingCompleted === true;
 }

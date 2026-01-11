@@ -52,7 +52,7 @@ export function useSessions() {
     return sessions.filter((s) => s.date === date);
   }, [sessions]);
 
-  const getSessionsByVariant = useCallback((variant: 'A' | 'V') => {
+  const getSessionsByVariant = useCallback((variant: 'A' | 'B') => {
     return sessions.filter((s) => s.variant === variant);
   }, [sessions]);
 
