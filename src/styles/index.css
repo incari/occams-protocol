@@ -9,9 +9,9 @@
 
   body {
     @apply m-0 p-0 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+      "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+      "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -53,5 +53,22 @@
   .card {
     @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4;
     @apply border border-gray-200 dark:border-gray-700;
+  }
+
+  /* Safe area insets for mobile devices (iPhone notch, home indicator, etc.) */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-inset-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-inset-right {
+    padding-right: env(safe-area-inset-right);
   }
 }
