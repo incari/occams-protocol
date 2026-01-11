@@ -1,22 +1,22 @@
-import { useEffect, useCallback } from 'react';
-import { useSettings } from './useSettings';
-import { getDayName } from '../utils/dateUtils';
+import { useEffect, useCallback } from "react";
+import { useSettings } from "./useSettings";
+import { getDayName } from "../utils/dateUtils";
 
 export function useNotifications() {
   const { settings } = useSettings();
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (!('Notification' in window)) {
+    if (!("Notification" in window)) {
       return false;
     }
 
-    if (Notification.permission === 'granted') {
+    if (Notification.permission === "granted") {
       return true;
     }
 
-    if (Notification.permission !== 'denied') {
+    if (Notification.permission !== "denied") {
       const permission = await Notification.requestPermission();
-      return permission === 'granted';
+      return permission === "granted";
     }
 
     return false;
@@ -33,38 +33,42 @@ export function useNotifications() {
     }
 
     // Clear existing notifications
-    if ('serviceWorker' in navigator && 'showNotification' in ServiceWorkerRegistration.prototype) {
-      const registration = await navigator.serviceWorker.ready;
+    if (
+      "serviceWorker" in navigator &&
+      "showNotification" in ServiceWorkerRegistration.prototype
+    ) {
+      await navigator.serviceWorker.ready;
       // Schedule notifications for each training day
-      settings.notifications.days.forEach((day) => {
-        // This would be handled by the service worker
-        // For now, we'll just check if it's a training day
-      });
+      // This would be handled by the service worker
+      // For now, we'll just check if it's a training day
     }
   }, [settings, requestPermission]);
 
-  const sendNotification = useCallback(async (title: string, options?: NotificationOptions) => {
-    const hasPermission = await requestPermission();
-    if (!hasPermission) {
-      return;
-    }
+  const sendNotification = useCallback(
+    async (title: string, options?: NotificationOptions) => {
+      const hasPermission = await requestPermission();
+      if (!hasPermission) {
+        return;
+      }
 
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        registration.showNotification(title, {
-          badge: '/pwa-192x192.png',
-          icon: '/pwa-192x192.png',
-          ...options,
-        });
-      } catch (error) {
-        // Fallback to regular notification
+      if ("serviceWorker" in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          registration.showNotification(title, {
+            badge: "/pwa-192x192.png",
+            icon: "/pwa-192x192.png",
+            ...options,
+          });
+        } catch (error) {
+          // Fallback to regular notification
+          new Notification(title, options);
+        }
+      } else {
         new Notification(title, options);
       }
-    } else {
-      new Notification(title, options);
-    }
-  }, [requestPermission]);
+    },
+    [requestPermission]
+  );
 
   const checkTrainingDay = useCallback(() => {
     if (!settings.notifications.enabled) {
@@ -86,18 +90,22 @@ export function useNotifications() {
 
   useEffect(() => {
     scheduleNotifications();
-    
+
     // Check for measurement notification day
     if (checkMeasurementDay()) {
-      const [hours, minutes] = settings.measurementNotifications.time.split(':');
+      const [hours, minutes] =
+        settings.measurementNotifications.time.split(":");
       const now = new Date();
       const notificationTime = new Date();
       notificationTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      
+
       // Check if it's time for measurement notification
-      if (now.getHours() === parseInt(hours) && now.getMinutes() === parseInt(minutes)) {
-        sendNotification('Time to log your body measurements!', {
-          body: 'Track your progress with weekly measurements',
+      if (
+        now.getHours() === parseInt(hours) &&
+        now.getMinutes() === parseInt(minutes)
+      ) {
+        sendNotification("Time to log your body measurements!", {
+          body: "Track your progress with weekly measurements",
         });
       }
     }
@@ -107,6 +115,7 @@ export function useNotifications() {
     requestPermission,
     sendNotification,
     checkTrainingDay,
-    hasPermission: 'Notification' in window && Notification.permission === 'granted',
+    hasPermission:
+      "Notification" in window && Notification.permission === "granted",
   };
 }

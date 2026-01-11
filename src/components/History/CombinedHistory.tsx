@@ -44,7 +44,9 @@ export function CombinedHistory() {
 
   const filteredItems = allItems.filter((item) => {
     if (filter === "all") return true;
-    return item.type === filter;
+    if (filter === "sessions") return item.type === "session";
+    if (filter === "measurements") return item.type === "measurement";
+    return false;
   });
 
   const handleDelete = (id: string, type: "session" | "measurement") => {

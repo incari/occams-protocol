@@ -1,8 +1,17 @@
-import { useState } from 'react';
-import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { useSessions } from '../../hooks/useSessions';
-import { formatDate, isToday } from '../../utils/dateUtils';
-import type { Variant } from '../../types';
+import { useState } from "react";
+import {
+  format,
+  getDay,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  addMonths,
+  subMonths,
+} from "date-fns";
+import { useSessions } from "../../hooks/useSessions";
+import { formatDate, isToday } from "../../utils/dateUtils";
+import type { Variant } from "../../types";
 
 export function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -24,7 +33,7 @@ export function Calendar() {
   };
 
   const getVariantColor = (variant: Variant) => {
-    return variant === 'A' ? 'bg-blue-500' : 'bg-green-500';
+    return variant === "A" ? "bg-blue-500" : "bg-green-500";
   };
 
   const nextMonth = () => {
@@ -35,7 +44,7 @@ export function Calendar() {
     setCurrentMonth(subMonths(currentMonth, 1));
   };
 
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-4 pb-24">
@@ -50,7 +59,7 @@ export function Calendar() {
             ‹
           </button>
           <h2 className="text-xl font-bold">
-            {format(currentMonth, 'MMMM yyyy')}
+            {format(currentMonth, "MMMM yyyy")}
           </h2>
           <button
             onClick={nextMonth}
@@ -64,7 +73,10 @@ export function Calendar() {
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((day) => (
-            <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
+            <div
+              key={day}
+              className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2"
+            >
               {day}
             </div>
           ))}
@@ -74,7 +86,10 @@ export function Calendar() {
         <div className="grid grid-cols-7 gap-1">
           {/* Empty cells for days before month starts */}
           {emptyDays.map((_, index) => (
-            <div key={`empty-${index}`} className="aspect-square" />
+            <div
+              key={`empty-${index}`}
+              className="aspect-square"
+            />
           ))}
 
           {/* Month days */}
@@ -88,26 +103,30 @@ export function Calendar() {
                 key={day.toISOString()}
                 className={`aspect-square flex flex-col items-center justify-center p-1 rounded-lg ${
                   isCurrentDay
-                    ? 'bg-primary-100 dark:bg-primary-900/30 border-2 border-primary-600'
+                    ? "bg-primary-100 dark:bg-primary-900/30 border-2 border-primary-600"
                     : isCurrentMonth
-                    ? 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    : 'opacity-30'
+                    ? "hover:bg-gray-100 dark:hover:bg-gray-700"
+                    : "opacity-30"
                 }`}
               >
                 <span
                   className={`text-sm font-medium ${
-                    isCurrentDay ? 'text-primary-700 dark:text-primary-300' : ''
+                    isCurrentDay ? "text-primary-700 dark:text-primary-300" : ""
                   }`}
                 >
-                  {format(day, 'd')}
+                  {format(day, "d")}
                 </span>
                 {daySessions.length > 0 && (
                   <div className="flex gap-1 mt-1">
                     {daySessions.map((session, idx) => (
                       <div
                         key={idx}
-                        className={`w-2 h-2 rounded-full ${getVariantColor(session.variant)}`}
-                        title={`${session.variant}: ${session.exercises.map((e) => `${e.name} ${e.weight}${e.unit}`).join(', ')}`}
+                        className={`w-2 h-2 rounded-full ${getVariantColor(
+                          session.variant
+                        )}`}
+                        title={`${session.variant}: ${session.exercises
+                          .map((e) => `${e.name} ${e.weight}${e.unit}`)
+                          .join(", ")}`}
                       />
                     ))}
                   </div>
