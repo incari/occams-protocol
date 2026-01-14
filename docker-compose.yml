@@ -1,0 +1,24 @@
+services:
+  app:
+    image: ghcr.io/incari/occam-protocol-app:latest
+    ports:
+      - "3001:3001"
+    volumes:
+      # Persist SQLite database
+      - occam-data:/app/server/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_PATH=/your_path/occam.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/data"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  occam-data:
+    driver: local
+
