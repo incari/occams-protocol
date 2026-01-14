@@ -62,11 +62,20 @@ export interface UserProfile {
   onboardingCompleted: boolean;
 }
 
+export interface ScheduledReminder {
+  id: string;
+  date: string; // ISO date string (YYYY-MM-DD) - the next training date
+  variant: Variant;
+  createdAt: number;
+  completed: boolean; // Whether this training was done
+}
+
 export interface AppData {
   sessions: TrainingSession[];
   measurements: Measurement[];
   settings: AppSettings;
   userProfile?: UserProfile;
+  scheduledReminders?: ScheduledReminder[];
 }
 
 export const EXERCISES: Record<Variant, string[]> = {

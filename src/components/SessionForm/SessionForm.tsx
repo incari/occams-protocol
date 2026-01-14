@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { WarningModal } from "../Modal/WarningModal";
+import { CongratsModal } from "../Modal/CongratsModal";
 import { formatDate } from "../../utils/dateUtils";
 import {
   validateWeight,
@@ -10,6 +11,7 @@ import {
 } from "../../utils/validation";
 import { useSessions } from "../../hooks/useSessions";
 import { useSettings } from "../../hooks/useSettings";
+import { useScheduledReminders } from "../../hooks/useScheduledReminders";
 import { EXERCISES, type Variant } from "../../types";
 
 const DRAFT_KEY = "session-draft";
@@ -18,6 +20,7 @@ export function SessionForm() {
   const navigate = useNavigate();
   const { createSession } = useSessions();
   const { settings } = useSettings();
+  const { scheduleReminder } = useScheduledReminders();
 
   const [date, setDate] = useState(formatDate(new Date()));
   const [variant, setVariant] = useState<Variant>("A");
@@ -27,6 +30,9 @@ export function SessionForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [showClearDraftModal, setShowClearDraftModal] = useState(false);
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
+  const [savedSessionDate, setSavedSessionDate] = useState("");
+  const [savedVariant, setSavedVariant] = useState<Variant>("A");
 
   const exercises = EXERCISES[variant];
 
@@ -237,13 +243,28 @@ export function SessionForm() {
     if (session) {
       // Clear draft after successful save
       clearDraft();
-      navigate("/history", {
-        state: { message: "Session logged successfully!" },
-      });
+      // Store session info and show congrats modal
+      setSavedSessionDate(date);
+      setSavedVariant(variant);
+      setShowCongratsModal(true);
+      setIsSubmitting(false);
     } else {
       setErrors({ submit: "Failed to save session. Please try again." });
       setIsSubmitting(false);
     }
+  };
+
+  const handleScheduleReminder = (nextDate: string, nextVariant: Variant) => {
+    scheduleReminder(nextDate, nextVariant);
+    navigate("/calendar", {
+      state: { message: "Training scheduled! See you next week! 💪" },
+    });
+  };
+
+  const handleSkipReminder = () => {
+    navigate("/history", {
+      state: { message: "Session logged successfully!" },
+    });
   };
 
   return (
@@ -450,6 +471,14 @@ export function SessionForm() {
           setShowClearDraftModal(false);
         }}
         onCancel={() => setShowClearDraftModal(false)}
+      />
+
+      <CongratsModal
+        isOpen={showCongratsModal}
+        variant={savedVariant}
+        sessionDate={savedSessionDate}
+        onScheduleReminder={handleScheduleReminder}
+        onSkip={handleSkipReminder}
       />
     </div>
   );
