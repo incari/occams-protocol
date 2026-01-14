@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Edit, Trash2 } from "lucide-react";
 import { useSessions } from "../../hooks/useSessions";
 import { useMeasurements } from "../../hooks/useMeasurements";
 import { formatDateDisplay } from "../../utils/dateUtils";
@@ -14,6 +15,7 @@ type HistoryItem = {
 };
 
 export function CombinedHistory() {
+  const navigate = useNavigate();
   const { sessions, removeSession } = useSessions();
   const { measurements, removeMeasurement } = useMeasurements();
   const [filter, setFilter] = useState<"all" | "sessions" | "measurements">(
@@ -151,6 +153,7 @@ export function CombinedHistory() {
                         <span className="font-medium">{exercise.name}:</span>{" "}
                         <span className="text-gray-600 dark:text-gray-400">
                           {exercise.weight} {exercise.unit}
+                          {exercise.reps && ` • ${exercise.reps} swings`}
                         </span>
                       </div>
                     ))}
@@ -172,18 +175,33 @@ export function CombinedHistory() {
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => handleDelete(item.id, item.type)}
-                disabled={deletingId === item.id}
-                className="btn btn-danger text-sm ml-4"
-                aria-label="Delete"
-              >
-                {deletingId === item.id ? (
-                  "..."
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-              </button>
+              <div className="flex gap-2 ml-4">
+                <button
+                  onClick={() =>
+                    navigate(
+                      item.type === "session"
+                        ? `/session/edit/${item.id}`
+                        : `/measurements/edit/${item.id}`
+                    )
+                  }
+                  className="btn btn-secondary text-sm"
+                  aria-label="Edit"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id, item.type)}
+                  disabled={deletingId === item.id}
+                  className="btn btn-danger text-sm"
+                  aria-label="Delete"
+                >
+                  {deletingId === item.id ? (
+                    "..."
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         ))}

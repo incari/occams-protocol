@@ -1,9 +1,10 @@
-export type Variant = 'A' | 'B';
+export type Variant = "A" | "B";
 
 export interface Exercise {
   name: string;
   weight: number;
-  unit: 'kg' | 'lbs';
+  unit: "kg" | "lbs";
+  reps?: number; // Optional: for exercises like Kettlebells swinging
 }
 
 export interface TrainingSession {
@@ -22,6 +23,7 @@ export interface BodyMeasurements {
   rightLeg: number;
   waist: number;
   hip: number;
+  chestWidth: number;
 }
 
 export interface Measurement {
@@ -30,14 +32,14 @@ export interface Measurement {
   weight: number;
   bodyFat: number; // percentage
   measurements: BodyMeasurements;
-  measurementUnit: 'cm' | 'inches';
-  weightUnit: 'kg' | 'lbs';
+  measurementUnit: "cm" | "inches";
+  weightUnit: "kg" | "lbs";
   createdAt: number;
   updatedAt: number;
 }
 
 export interface AppSettings {
-  unit: 'kg' | 'lbs';
+  unit: "kg" | "lbs";
   notifications: {
     enabled: boolean;
     days: string[]; // e.g., ['monday', 'wednesday', 'friday']
@@ -48,15 +50,15 @@ export interface AppSettings {
     day: string; // e.g., 'monday' - day of week for measurement reminder
     time: string; // e.g., '18:00'
   };
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
 }
 
 export interface UserProfile {
   name: string;
   height: number; // in cm
   initialWeight: number; // in kg
-  heightUnit: 'cm' | 'inches';
-  weightUnit: 'kg' | 'lbs';
+  heightUnit: "cm" | "inches";
+  weightUnit: "kg" | "lbs";
   onboardingCompleted: boolean;
 }
 
@@ -68,6 +70,6 @@ export interface AppData {
 }
 
 export const EXERCISES: Record<Variant, string[]> = {
-  A: ['Lat Pulldown', 'Shoulder Press', 'Abdominal Exercises'],
-  B: ['Chest Press', 'Leg Press', 'Kettlebells swinging'],
+  A: ["Lat Pulldown", "Shoulder Press", "Abdominal Exercises"],
+  B: ["Chest Press", "Leg Press", "Kettlebells swinging"],
 };

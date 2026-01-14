@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Trash2, ChevronUp, ChevronDown, Edit } from "lucide-react";
 import { useMeasurements } from "../../hooks/useMeasurements";
 import { formatDateDisplay } from "../../utils/dateUtils";
 import { WarningModal } from "../Modal/WarningModal";
 
 export function MeasurementList() {
+  const navigate = useNavigate();
   const { measurements, removeMeasurement } = useMeasurements();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -156,12 +157,23 @@ export function MeasurementList() {
                             {measurement.measurementUnit}
                           </div>
                         </div>
+                        <div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Chest Width
+                          </div>
+                          <div className="font-medium">
+                            {measurement.measurements.chestWidth || "N/A"}{" "}
+                            {measurement.measurements.chestWidth
+                              ? measurement.measurementUnit
+                              : ""}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2 ml-4">
+                <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => toggleExpand(measurement.id)}
                     className="btn btn-secondary text-sm"
@@ -172,6 +184,15 @@ export function MeasurementList() {
                     ) : (
                       <ChevronDown className="w-4 h-4" />
                     )}
+                  </button>
+                  <button
+                    onClick={() =>
+                      navigate(`/measurements/edit/${measurement.id}`)
+                    }
+                    className="btn btn-secondary text-sm"
+                    aria-label="Edit measurement"
+                  >
+                    <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(measurement.id)}

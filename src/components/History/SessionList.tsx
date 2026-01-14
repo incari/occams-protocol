@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSessions } from "../../hooks/useSessions";
 import { formatDateDisplay } from "../../utils/dateUtils";
 import { WarningModal } from "../Modal/WarningModal";
 import type { Variant } from "../../types";
 
 export function SessionList() {
+  const navigate = useNavigate();
   const { sessions, removeSession } = useSessions();
   const [filter, setFilter] = useState<"all" | "A" | "B">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -115,23 +117,33 @@ export function SessionList() {
                       <span className="font-medium">{exercise.name}:</span>{" "}
                       <span className="text-gray-600 dark:text-gray-400">
                         {exercise.weight} {exercise.unit}
+                        {exercise.reps && ` • ${exercise.reps} swings`}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
-              <button
-                onClick={() => handleDelete(session.id)}
-                disabled={deletingId === session.id}
-                className="btn btn-danger text-sm ml-4"
-                aria-label="Delete session"
-              >
-                {deletingId === session.id ? (
-                  "..."
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-              </button>
+              <div className="flex gap-2 ml-4">
+                <button
+                  onClick={() => navigate(`/session/edit/${session.id}`)}
+                  className="btn btn-secondary text-sm"
+                  aria-label="Edit session"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(session.id)}
+                  disabled={deletingId === session.id}
+                  className="btn btn-danger text-sm"
+                  aria-label="Delete session"
+                >
+                  {deletingId === session.id ? (
+                    "..."
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         ))}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { WarningModal } from "../Modal/WarningModal";
 import { formatDate } from "../../utils/dateUtils";
@@ -12,77 +12,131 @@ import { useSessions } from "../../hooks/useSessions";
 import { useSettings } from "../../hooks/useSettings";
 import { EXERCISES, type Variant } from "../../types";
 
-const DRAFT_KEY = "session-draft";
-
-export function SessionForm() {
+export function SessionEdit() {
   const navigate = useNavigate();
-  const { createSession } = useSessions();
+  const { id } = useParams<{ id: string }>();
+  const { sessions, loading, editSession } = useSessions();
   const { settings } = useSettings();
 
   const [date, setDate] = useState(formatDate(new Date()));
   const [variant, setVariant] = useState<Variant>("A");
   const [weights, setWeights] = useState<Record<string, string>>({});
-  const [reps, setReps] = useState<Record<string, string>>({}); // For exercises that need reps (like Kettlebells)
+  const [reps, setReps] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [showClearDraftModal, setShowClearDraftModal] = useState(false);
 
   const exercises = EXERCISES[variant];
+  const draftKey = `session-edit-draft-${id}`;
 
-  // Track if draft was loaded
-  const [draftLoaded, setDraftLoaded] = useState(false);
-
-  // Load draft on mount
+  // Load session data
   useEffect(() => {
-    const savedDraft = localStorage.getItem(DRAFT_KEY);
+    // Wait for sessions to load
+    if (loading) return;
+
+    if (!id) {
+      setNotFound(true);
+      return;
+    }
+
+    const session = sessions.find((s) => s.id === id);
+    if (!session) {
+      setNotFound(true);
+      return;
+    }
+
+    // Check if there's a draft for this session
+    const savedDraft = localStorage.getItem(draftKey);
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
-        setDate(draft.date || formatDate(new Date()));
-        setVariant(draft.variant || "A");
+        setDate(draft.date || session.date);
+        setVariant(draft.variant || session.variant);
         setWeights(draft.weights || {});
         setReps(draft.reps || {});
         setHasDraft(true);
-        setDraftLoaded(true);
+        return; // Use draft instead of original session data
       } catch (error) {
         console.error("Error loading draft:", error);
-        setDraftLoaded(true);
       }
-    } else {
-      setDraftLoaded(true);
     }
-  }, []);
 
-  // Initialize weights and reps when variant changes, but only after draft is loaded
+    // Load original session data if no draft
+    setDate(session.date);
+    setVariant(session.variant);
+
+    const initialWeights: Record<string, string> = {};
+    const initialReps: Record<string, string> = {};
+
+    session.exercises.forEach((exercise) => {
+      initialWeights[exercise.name] = exercise.weight.toString();
+      if (exercise.reps) {
+        initialReps[exercise.name] = exercise.reps.toString();
+      }
+    });
+
+    setWeights(initialWeights);
+    setReps(initialReps);
+  }, [id, sessions, draftKey, loading]);
+
+  // Initialize weights when variant changes
   useEffect(() => {
-    if (!draftLoaded) return;
-
-    // Check if there's already data for the current exercises (from draft)
-    const currentExercises = exercises;
-    const hasExistingData = currentExercises.some(
-      (ex) => weights[ex] && weights[ex] !== ""
-    );
-
-    // Only initialize if no existing data
-    if (!hasExistingData) {
-      const initialWeights: Record<string, string> = {};
-      const initialReps: Record<string, string> = {};
-      currentExercises.forEach((exercise) => {
+    const initialWeights: Record<string, string> = {};
+    const initialReps: Record<string, string> = {};
+    exercises.forEach((exercise) => {
+      if (!weights[exercise]) {
         initialWeights[exercise] = "";
-        if (exercise.toLowerCase().includes("kettlebell")) {
-          initialReps[exercise] = "";
-        }
-      });
-      setWeights(initialWeights);
-      setReps(initialReps);
+      } else {
+        initialWeights[exercise] = weights[exercise];
+      }
+      if (exercise.toLowerCase().includes("kettlebell")) {
+        initialReps[exercise] = reps[exercise] || "";
+      }
+    });
+    setWeights((prev) => ({ ...prev, ...initialWeights }));
+    setReps((prev) => ({ ...prev, ...initialReps }));
+  }, [variant]);
+
+  // Save draft to localStorage
+  const saveDraft = () => {
+    if (!id) return;
+    const draft = {
+      date,
+      variant,
+      weights,
+      reps,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(draftKey, JSON.stringify(draft));
+    setHasDraft(true);
+  };
+
+  // Clear draft from localStorage
+  const clearDraft = () => {
+    if (!id) return;
+    localStorage.removeItem(draftKey);
+    setHasDraft(false);
+  };
+
+  // Auto-save draft when weights or reps change
+  useEffect(() => {
+    if (!id) return;
+    // Only auto-save if there's at least one weight or rep entered
+    const hasData =
+      Object.values(weights).some((w) => w !== "") ||
+      Object.values(reps).some((r) => r !== "");
+    if (hasData) {
+      const timeoutId = setTimeout(() => {
+        saveDraft();
+      }, 1000); // Auto-save after 1 second of inactivity
+      return () => clearTimeout(timeoutId);
     }
-    setErrors({});
-  }, [variant, draftLoaded]);
+  }, [weights, reps, date, variant, id]);
 
   const handleWeightChange = (exercise: string, value: string) => {
     setWeights((prev) => ({ ...prev, [exercise]: value }));
-    // Clear error when user starts typing
     if (errors[exercise]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -94,7 +148,6 @@ export function SessionForm() {
 
   const handleRepsChange = (exercise: string, value: string) => {
     setReps((prev) => ({ ...prev, [exercise]: value }));
-    // Clear error when user starts typing
     if (errors[`${exercise}-reps`]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -104,43 +157,12 @@ export function SessionForm() {
     }
   };
 
-  // Save draft to localStorage
-  const saveDraft = () => {
-    const draft = {
-      date,
-      variant,
-      weights,
-      reps,
-      savedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    setHasDraft(true);
-  };
-
-  // Clear draft from localStorage
-  const clearDraft = () => {
-    localStorage.removeItem(DRAFT_KEY);
-    setHasDraft(false);
-  };
-
-  // Auto-save draft when weights or reps change
-  useEffect(() => {
-    // Only auto-save if there's at least one weight or rep entered
-    const hasData =
-      Object.values(weights).some((w) => w !== "") ||
-      Object.values(reps).some((r) => r !== "");
-    if (hasData) {
-      const timeoutId = setTimeout(() => {
-        saveDraft();
-      }, 1000); // Auto-save after 1 second of inactivity
-      return () => clearTimeout(timeoutId);
-    }
-  }, [weights, reps, date, variant]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrors({});
+
+    if (!id) return;
 
     // Validate date
     const dateValidation = validateDate(date);
@@ -185,7 +207,6 @@ export function SessionForm() {
         continue;
       }
 
-      // Check if this exercise needs reps (Kettlebells)
       const needsReps = exercise.toLowerCase().includes("kettlebell");
       let repsValue: number | undefined;
 
@@ -227,28 +248,54 @@ export function SessionForm() {
       return;
     }
 
-    // Create session
-    const session = createSession({
+    // Update session
+    const success = editSession(id, {
       date,
       variant,
       exercises: exerciseList,
     });
 
-    if (session) {
+    if (success) {
       // Clear draft after successful save
       clearDraft();
       navigate("/history", {
-        state: { message: "Session logged successfully!" },
+        state: { message: "Session updated successfully!" },
       });
     } else {
-      setErrors({ submit: "Failed to save session. Please try again." });
+      setErrors({ submit: "Failed to update session. Please try again." });
       setIsSubmitting(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 pt-4 pb-24">
+        <div className="card mt-4 text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 pt-4 pb-24">
+        <div className="card mt-4 text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400">Session not found.</p>
+          <button
+            onClick={() => navigate("/history")}
+            className="btn btn-primary mt-4"
+          >
+            Back to History
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 pt-4 pb-24">
-      <h1 className="text-2xl font-bold mb-6 mt-4">Log Training Session</h1>
+      <h1 className="text-2xl font-bold mb-6 mt-4">Edit Training Session</h1>
 
       {hasDraft && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -295,7 +342,7 @@ export function SessionForm() {
         {/* Variant Selection */}
         <div>
           <label className="block text-sm font-medium mb-3">
-            Training Variant
+            Workout Variant
           </label>
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -415,13 +462,22 @@ export function SessionForm() {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="btn btn-primary w-full"
-        >
-          {isSubmitting ? "Saving..." : "Save Session"}
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => navigate("/history")}
+            className="btn btn-secondary flex-1"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="btn btn-primary flex-1"
+          >
+            {isSubmitting ? "Updating..." : "Update Session"}
+          </button>
+        </div>
 
         {hasDraft && (
           <button
@@ -438,15 +494,27 @@ export function SessionForm() {
       <WarningModal
         isOpen={showClearDraftModal}
         title="Clear Draft"
-        message="Are you sure you want to clear the draft? This will reset all fields."
+        message="Are you sure you want to clear the draft? This will reload the original session data."
         confirmText="Clear"
         cancelText="Cancel"
         onConfirm={() => {
           clearDraft();
-          setWeights({});
-          setReps({});
-          setDate(formatDate(new Date()));
-          setVariant("A");
+          // Reload original session data
+          const session = sessions.find((s) => s.id === id);
+          if (session) {
+            setDate(session.date);
+            setVariant(session.variant);
+            const initialWeights: Record<string, string> = {};
+            const initialReps: Record<string, string> = {};
+            session.exercises.forEach((exercise) => {
+              initialWeights[exercise.name] = exercise.weight.toString();
+              if (exercise.reps) {
+                initialReps[exercise.name] = exercise.reps.toString();
+              }
+            });
+            setWeights(initialWeights);
+            setReps(initialReps);
+          }
           setShowClearDraftModal(false);
         }}
         onCancel={() => setShowClearDraftModal(false)}

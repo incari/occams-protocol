@@ -1,16 +1,18 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { BottomNav } from './components/Navigation/BottomNav';
-import { Dashboard } from './components/Dashboard/Dashboard';
-import { Calendar } from './components/Calendar/Calendar';
-import { SessionForm } from './components/SessionForm/SessionForm';
-import { MeasurementList } from './components/Measurements/MeasurementList';
-import { MeasurementForm } from './components/Measurements/MeasurementForm';
-import { Settings } from './components/Settings/Settings';
-import { Onboarding } from './components/Onboarding/Onboarding';
-import { History } from './components/History/History';
-import { useSettings } from './hooks/useSettings';
-import { isOnboardingCompleted } from './utils/storage';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { BottomNav } from "./components/Navigation/BottomNav";
+import { Dashboard } from "./components/Dashboard/Dashboard";
+import { Calendar } from "./components/Calendar/Calendar";
+import { SessionForm } from "./components/SessionForm/SessionForm";
+import { SessionEdit } from "./components/SessionForm/SessionEdit";
+import { MeasurementList } from "./components/Measurements/MeasurementList";
+import { MeasurementForm } from "./components/Measurements/MeasurementForm";
+import { MeasurementEdit } from "./components/Measurements/MeasurementEdit";
+import { Settings } from "./components/Settings/Settings";
+import { Onboarding } from "./components/Onboarding/Onboarding";
+import { History } from "./components/History/History";
+import { useSettings } from "./hooks/useSettings";
+import { isOnboardingCompleted } from "./utils/storage";
 
 function App() {
   const { settings, loading } = useSettings();
@@ -19,24 +21,24 @@ function App() {
   useEffect(() => {
     // Apply theme immediately when settings are loaded
     if (!loading) {
-      if (settings.theme === 'dark') {
-        document.documentElement.classList.add('dark');
+      if (settings.theme === "dark") {
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove("dark");
       }
     }
   }, [settings.theme, loading]);
 
   // Also apply theme on initial mount to prevent flash
   useEffect(() => {
-    const savedSettings = localStorage.getItem('occam-protocol-data');
+    const savedSettings = localStorage.getItem("occam-protocol-data");
     if (savedSettings) {
       try {
         const data = JSON.parse(savedSettings);
-        if (data.settings?.theme === 'dark') {
-          document.documentElement.classList.add('dark');
+        if (data.settings?.theme === "dark") {
+          document.documentElement.classList.add("dark");
         } else {
-          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.remove("dark");
         }
       } catch (e) {
         // Ignore parse errors
@@ -73,13 +75,42 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/log" element={<SessionForm />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/measurements" element={<MeasurementList />} />
-          <Route path="/measurements/new" element={<MeasurementForm />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route
+            path="/"
+            element={<Dashboard />}
+          />
+          <Route
+            path="/calendar"
+            element={<Calendar />}
+          />
+          <Route
+            path="/log"
+            element={<SessionForm />}
+          />
+          <Route
+            path="/session/edit/:id"
+            element={<SessionEdit />}
+          />
+          <Route
+            path="/history"
+            element={<History />}
+          />
+          <Route
+            path="/measurements"
+            element={<MeasurementList />}
+          />
+          <Route
+            path="/measurements/new"
+            element={<MeasurementForm />}
+          />
+          <Route
+            path="/measurements/edit/:id"
+            element={<MeasurementEdit />}
+          />
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
         </Routes>
         <BottomNav />
       </div>
